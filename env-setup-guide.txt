@@ -1,0 +1,14 @@
+# Copy this file to .env.local and fill in your actual values
+
+# Supabase Configuration
+# Get these from your Supabase project settings: https://supabase.com/dashboard/project/YOUR_PROJECT/settings/api
+
+# Your Supabase project URL (should end with .supabase.co)
+NEXT_PUBLIC_SUPABASE_URL=https://mmfmmaitutpsatzuudns.supabase.co
+
+# Your Supabase anon/public key (safe to use in browser)
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZm1tYWl0dXRwc2F0enV1ZG5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyMDE5ODEsImV4cCI6MjA4MDc3Nzk4MX0.1iu2NQzQghpW1kFvKnJMGvmPmZMAJDKVCY7rbMb0uKQ
+
+# Service role key for server-side operations (KEEP SECRET!)
+# Get this from: Settings > API > service_role key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
