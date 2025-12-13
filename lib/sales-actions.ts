@@ -90,41 +90,49 @@ export async function getAnalytics(): Promise<Analytics> {
     };
 }
 
-export async function reverseSale(saleId: number) {
+export async function deleteSale(saleId: number) {
     try {
-        // Get sale items
+        // Get sale items to restore stock
         const { data: saleItems } = await supabaseAdmin
             .from('sale_items')
             .select('item_id, quantity')
             .eq('sale_id', saleId);
 
-        if (!saleItems) return;
-
-        // Restore stock for each item
-        for (const item of saleItems) {
-            const { data: currentItem } = await supabaseAdmin
-                .from('items')
-                .select('stock')
-                .eq('id', item.item_id)
-                .single();
-
-            if (currentItem) {
-                await supabaseAdmin
+        if (saleItems) {
+            // Restore stock for each item
+            for (const item of saleItems) {
+                const { data: currentItem } = await supabaseAdmin
                     .from('items')
-                    .update({ stock: currentItem.stock + item.quantity })
-                    .eq('id', item.item_id);
+                    .select('stock')
+                    .eq('id', item.item_id)
+                    .single();
+
+                if (currentItem) {
+                    await supabaseAdmin
+                        .from('items')
+                        .update({ stock: currentItem.stock + item.quantity })
+                        .eq('id', item.item_id);
+                }
             }
         }
 
-        // Update sale status
+        // Delete sale items (if not cascading) - doing it explicitly to be safe
+        await supabaseAdmin
+            .from('sale_items')
+            .delete()
+            .eq('sale_id', saleId);
+
+        // Delete sale
         await supabaseAdmin
             .from('sales')
-            .update({ status: 'refunded' })
+            .delete()
             .eq('id', saleId);
 
         revalidatePath('/sales');
         revalidatePath('/inventory');
+        revalidatePath('/pos');
+        revalidatePath('/analytics'); // Analytics needs update too
     } catch (error) {
-        console.error('Refund failed', error);
+        console.error('Delete sale failed', error);
     }
 }

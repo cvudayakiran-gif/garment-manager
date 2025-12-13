@@ -173,7 +173,7 @@ export interface CartItem {
     quantity: number;
 }
 
-export async function processSale(cart: CartItem[], paymentMethod: string = 'cash', discount: number = 0) {
+export async function processSale(cart: CartItem[], paymentMethod: string = 'cash', discount: number = 0, saleDate?: string) {
     if (cart.length === 0) return { error: 'Cart is empty' };
 
     try {
@@ -200,14 +200,24 @@ export async function processSale(cart: CartItem[], paymentMethod: string = 'cas
         const total = Math.max(0, subtotal - discount);
 
         // Create sale
+        const saleData: any = {
+            total,
+            payment_method: paymentMethod,
+            discount,
+            status: 'completed'
+        };
+
+        // If a specific date is provided (and it's not today), use it.
+        // If it's today, we might prefer to let the DB handle it to keep precision, 
+        // OR we just use the provided date which will default to 00:00:00 UTC for that day.
+        // Let's use the provided date if it exists.
+        if (saleDate) {
+            saleData.created_at = saleDate;
+        }
+
         const { data: sale, error: saleError } = await supabaseAdmin
             .from('sales')
-            .insert({
-                total,
-                payment_method: paymentMethod,
-                discount,
-                status: 'completed'
-            })
+            .insert(saleData)
             .select('id')
             .single();
 

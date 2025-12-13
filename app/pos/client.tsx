@@ -16,14 +16,15 @@ export default function POSClient({ initialItems }: POSClientProps) {
     const [cart, setCart] = useState<{ item: Item; quantity: number }[]>([]);
     const [search, setSearch] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
-    const [discount, setDiscount] = useState<string>(''); // Keep as string for input handling
+    const [saleDate, setSaleDate] = useState<string>(new Date().toISOString().split('T')[0]);
+    const maxDate = new Date().toISOString().split('T')[0];
+    const [discount, setDiscount] = useState<string>('');
 
     const filteredItems = items.filter(item => {
         const term = search.toLowerCase();
-        // Search match logic: Name, Category, or ID (Serial)
         return item.name.toLowerCase().includes(term) ||
             (item.category && item.category.toLowerCase().includes(term)) ||
-            item.id.toString() === term; // Exact match for ID usually best, or partial? Let's do partial
+            item.id.toString() === term;
     });
 
     const addToCart = (item: Item) => {
@@ -60,10 +61,11 @@ export default function POSClient({ initialItems }: POSClientProps) {
         if (confirm(`Charge ₹${finalTotal} (Cash)?`)) {
             setIsProcessing(true);
             const cartData = cart.map(i => ({ id: i.item.id, quantity: i.quantity }));
-            const result = await processSale(cartData, 'cash', discountAmount);
+            const result = await processSale(cartData, 'cash', discountAmount, saleDate);
             if (result.success) {
                 setCart([]);
                 setDiscount('');
+                setSaleDate(new Date().toISOString().split('T')[0]);
                 alert('Sale completed!');
             } else {
                 alert('Sale failed: ' + result.error);
@@ -191,6 +193,18 @@ export default function POSClient({ initialItems }: POSClientProps) {
                             onChange={e => setDiscount(e.target.value)}
                             placeholder="0"
                             className="w-24 text-right rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        />
+                    </div>
+
+                    {/* Date Selection */}
+                    <div className="flex items-center justify-between gap-4">
+                        <span className="text-muted-foreground whitespace-nowrap">Date</span>
+                        <input
+                            type="date"
+                            value={saleDate}
+                            max={maxDate}
+                            onChange={e => setSaleDate(e.target.value)}
+                            className="w-32 text-right rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         />
                     </div>
 

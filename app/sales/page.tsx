@@ -1,4 +1,5 @@
-import { getSales, getAnalytics, reverseSale } from "@/lib/sales-actions";
+import { getSales, getAnalytics } from "@/lib/sales-actions";
+import DeleteButton from "./delete-button";
 import Link from "next/link";
 import { ArrowLeft, RotateCcw, TrendingUp, ShoppingBag, Banknote, Calendar } from "lucide-react";
 import { getUser } from "@/lib/auth";
@@ -149,14 +150,7 @@ export default async function SalesPage({
                                             </td>
                                             <td className="p-4 align-middle text-right">
                                                 {sale.status !== 'refunded' && (
-                                                    <form action={async () => {
-                                                        'use server';
-                                                        await reverseSale(sale.id);
-                                                    }}>
-                                                        <button type="submit" className="p-2 hover:bg-orange-100 hover:text-orange-600 rounded-md transition-colors" title="Reverse Sale (Refund)">
-                                                            <RotateCcw size={16} />
-                                                        </button>
-                                                    </form>
+                                                    <DeleteButton saleId={sale.id} />
                                                 )}
                                             </td>
                                         </tr>
