@@ -97,10 +97,12 @@ git push -u origin main
 4. Click "Deploy"
 5. **IMPORTANT**: Before deploying, add environment variables:
    - Click "Environment Variables"
-   - Add these three variables:
+     - Click "Environment Variables"
+   - Add these variables:
      - `NEXT_PUBLIC_SUPABASE_URL`
      - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-     - `SUPABASE_SERVICE_ROLE_KEY`
+     - `PUTTY_PASSWORD` (New!)
+     - `SONY_PASSWORD` (New!)
    - Copy values from your `.env.local` file
 6. Click "Deploy"
 

@@ -38,51 +38,57 @@ export interface SourceTrend {
 }
 
 export async function getTrendingItems(): Promise<TrendingItem[]> {
-    const { data } = await supabaseAdmin.rpc('get_trending_items');
+    const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
 
-    if (!data) {
-        // Fallback: manual query
-        const { data: items } = await supabaseAdmin
-            .from('sale_items')
-            .select(`
-                quantity,
-                price_at_sale,
-                items:item_id (
-                    name,
-                    category,
-                    source
-                ),
-                sales:sale_id (
-                    status
-                )
-            `)
-            .eq('sales.status', 'completed');
+    // Get sales from last 90 days
+    const { data: salesInRange } = await supabaseAdmin
+        .from('sales')
+        .select('id')
+        .gte('created_at', ninetyDaysAgo)
+        .eq('status', 'completed');
 
-        // Aggregate manually
-        const aggregated = items?.reduce((acc: any, item: any) => {
-            const key = item.items.name;
-            if (!acc[key]) {
-                acc[key] = {
-                    name: item.items.name,
-                    category: item.items.category,
-                    source: item.items.source,
-                    total_quantity_sold: 0,
-                    total_revenue: 0
-                };
-            }
-            acc[key].total_quantity_sold += item.quantity;
-            acc[key].total_revenue += item.quantity * Number(item.price_at_sale);
-            return acc;
-        }, {});
+    const saleIds = salesInRange?.map((s: any) => s.id) || [];
 
-        const result = Object.values(aggregated || {})
-            .sort((a: any, b: any) => b.total_quantity_sold - a.total_quantity_sold)
-            .slice(0, 10);
-
-        return result as TrendingItem[];
+    if (saleIds.length === 0) {
+        return [];
     }
 
-    return data;
+    // Fallback: manual query
+    const { data: items } = await supabaseAdmin
+        .from('sale_items')
+        .select(`
+            quantity,
+            price_at_sale,
+            items:item_id (
+                name,
+                category,
+                source
+            )
+        `)
+        .in('sale_id', saleIds);
+
+    // Aggregate manually
+    const aggregated = items?.reduce((acc: any, item: any) => {
+        const key = item.items.name;
+        if (!acc[key]) {
+            acc[key] = {
+                name: item.items.name,
+                category: item.items.category,
+                source: item.items.source,
+                total_quantity_sold: 0,
+                total_revenue: 0
+            };
+        }
+        acc[key].total_quantity_sold += item.quantity;
+        acc[key].total_revenue += item.quantity * Number(item.price_at_sale);
+        return acc;
+    }, {});
+
+    const result = Object.values(aggregated || {})
+        .sort((a: any, b: any) => b.total_quantity_sold - a.total_quantity_sold)
+        .slice(0, 10);
+
+    return result as TrendingItem[];
 }
 
 export async function getSlowMovingItems(): Promise<SlowMovingItem[]> {
@@ -133,15 +139,29 @@ export async function getSlowMovingItems(): Promise<SlowMovingItem[]> {
 }
 
 export async function getMaterialTrends(): Promise<MaterialTrend[]> {
+    const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+
+    // Get sales from last 90 days
+    const { data: salesInRange } = await supabaseAdmin
+        .from('sales')
+        .select('id')
+        .gte('created_at', ninetyDaysAgo)
+        .eq('status', 'completed');
+
+    const saleIds = salesInRange?.map((s: any) => s.id) || [];
+
+    if (saleIds.length === 0) {
+        return [];
+    }
+
     const { data: items } = await supabaseAdmin
         .from('sale_items')
         .select(`
             quantity,
             price_at_sale,
-            items:item_id (name),
-            sales:sale_id (status)
+            items:item_id (name)
         `)
-        .eq('sales.status', 'completed');
+        .in('sale_id', saleIds);
 
     const aggregated = items?.reduce((acc: any, item: any) => {
         const material = item.items.name;
@@ -159,15 +179,29 @@ export async function getMaterialTrends(): Promise<MaterialTrend[]> {
 }
 
 export async function getCategoryTrends(): Promise<CategoryTrend[]> {
+    const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+
+    // Get sales from last 90 days
+    const { data: salesInRange } = await supabaseAdmin
+        .from('sales')
+        .select('id')
+        .gte('created_at', ninetyDaysAgo)
+        .eq('status', 'completed');
+
+    const saleIds = salesInRange?.map((s: any) => s.id) || [];
+
+    if (saleIds.length === 0) {
+        return [];
+    }
+
     const { data: items } = await supabaseAdmin
         .from('sale_items')
         .select(`
             quantity,
             price_at_sale,
-            items:item_id (category),
-            sales:sale_id (status)
+            items:item_id (category)
         `)
-        .eq('sales.status', 'completed')
+        .in('sale_id', saleIds)
         .not('items.category', 'is', null);
 
     const aggregated = items?.reduce((acc: any, item: any) => {
@@ -187,15 +221,29 @@ export async function getCategoryTrends(): Promise<CategoryTrend[]> {
 }
 
 export async function getSourceTrends(): Promise<SourceTrend[]> {
+    const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+
+    // Get sales from last 90 days
+    const { data: salesInRange } = await supabaseAdmin
+        .from('sales')
+        .select('id')
+        .gte('created_at', ninetyDaysAgo)
+        .eq('status', 'completed');
+
+    const saleIds = salesInRange?.map((s: any) => s.id) || [];
+
+    if (saleIds.length === 0) {
+        return [];
+    }
+
     const { data: items } = await supabaseAdmin
         .from('sale_items')
         .select(`
             quantity,
             price_at_sale,
-            items:item_id (source),
-            sales:sale_id (status)
+            items:item_id (source)
         `)
-        .eq('sales.status', 'completed')
+        .in('sale_id', saleIds)
         .not('items.source', 'is', null);
 
     const aggregated = items?.reduce((acc: any, item: any) => {

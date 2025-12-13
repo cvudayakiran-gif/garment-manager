@@ -19,24 +19,34 @@ export interface Analytics {
     totalItemsSold: number;
 }
 
-export async function getSales(): Promise<Sale[]> {
+export async function getSales(startDate?: string, endDate?: string): Promise<Sale[]> {
+    // Default to last 90 days if no dates provided
+    const defaultEndDate = new Date().toISOString().split('T')[0];
+    const defaultStartDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    const start = startDate || defaultStartDate;
+    const end = endDate || defaultEndDate;
+
     const { data } = await supabaseAdmin
         .from('sales')
         .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
+        .gte('created_at', `${start}T00:00:00`)
+        .lte('created_at', `${end}T23:59:59`)
+        .order('created_at', { ascending: false });
 
     return data || [];
 }
 
 export async function getAnalytics(): Promise<Analytics> {
     const today = new Date().toISOString().split('T')[0];
+    const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-    // Total revenue
+    // Total revenue (last 90 days)
     const { data: revenueData } = await supabaseAdmin
         .from('sales')
         .select('total')
-        .eq('status', 'completed');
+        .eq('status', 'completed')
+        .gte('created_at', `${ninetyDaysAgo}T00:00:00`);
     const totalRevenue = revenueData?.reduce((sum: number, sale: any) => sum + Number(sale.total), 0) || 0;
 
     // Daily revenue
@@ -48,17 +58,29 @@ export async function getAnalytics(): Promise<Analytics> {
         .lt('created_at', `${today}T23:59:59`);
     const dailyRevenue = dailyData?.reduce((sum: number, sale: any) => sum + Number(sale.total), 0) || 0;
 
-    // Total transactions
+    // Total transactions (last 90 days)
     const { count: totalTransactions } = await supabaseAdmin
         .from('sales')
         .select('*', { count: 'exact', head: true })
-        .eq('status', 'completed');
+        .eq('status', 'completed')
+        .gte('created_at', `${ninetyDaysAgo}T00:00:00`);
 
-    // Total items sold
-    const { data: itemsData } = await supabaseAdmin
-        .from('sale_items')
-        .select('quantity');
-    const totalItemsSold = itemsData?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
+    // Total items sold (last 90 days)
+    const { data: salesInRange } = await supabaseAdmin
+        .from('sales')
+        .select('id')
+        .gte('created_at', `${ninetyDaysAgo}T00:00:00`);
+
+    const saleIds = salesInRange?.map((s: any) => s.id) || [];
+
+    let totalItemsSold = 0;
+    if (saleIds.length > 0) {
+        const { data: itemsData } = await supabaseAdmin
+            .from('sale_items')
+            .select('quantity')
+            .in('sale_id', saleIds);
+        totalItemsSold = itemsData?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
+    }
 
     return {
         totalRevenue,

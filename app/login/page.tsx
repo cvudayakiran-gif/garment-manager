@@ -1,7 +1,7 @@
 'use client';
 
 import { login } from '@/lib/auth';
-import { Users, Lock } from 'lucide-react';
+import { Users, Lock, User } from 'lucide-react';
 import { useState } from 'react';
 
 export default function LoginPage() {
@@ -22,35 +22,37 @@ export default function LoginPage() {
                         <Users size={32} />
                     </div>
                     <h1 className="text-2xl font-bold">Anavrin Sarees</h1>
-                    <p className="text-muted-foreground">Select your profile to continue</p>
+                    <p className="text-muted-foreground">Sign in to continue</p>
                 </div>
 
                 <form action={handleSubmit} className="space-y-6">
-                    <div className="space-y-4">
-                        <label className="text-sm font-medium">Select User</label>
-                        <div className="grid grid-cols-3 gap-2">
-                            {['Owner', 'Staff 1', 'Staff 2'].map((u) => (
-                                <div key={u}>
-                                    <input type="radio" name="user" value={u} id={`u-${u}`} className="peer hidden" defaultChecked={u === 'Owner'} />
-                                    <label htmlFor={`u-${u}`} className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-transparent bg-muted p-4 text-center text-sm font-medium hover:bg-muted/80 peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-primary cursor-pointer transition-all">
-                                        {u}
-                                    </label>
-                                </div>
-                            ))}
+                    <div className="space-y-2">
+                        <label htmlFor="username" className="text-sm font-medium">Username</label>
+                        <div className="relative">
+                            <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                            <select
+                                name="username"
+                                id="username"
+                                required
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pl-10 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            >
+                                <option value="">Select user</option>
+                                <option value="Putty">Putty</option>
+                                <option value="Sony">Sony</option>
+                            </select>
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <label htmlFor="pin" className="text-sm font-medium">Enter PIN</label>
+                        <label htmlFor="password" className="text-sm font-medium">Password</label>
                         <div className="relative">
                             <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
                             <input
-                                name="pin"
-                                id="pin"
+                                name="password"
+                                id="password"
                                 type="password"
-                                inputMode="numeric"
-                                maxLength={4}
-                                placeholder="1234"
+                                required
+                                placeholder="Enter your password"
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pl-10 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                             />
                         </div>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ShoppingBag, Package, Users, BarChart3 } from "lucide-react";
+import { ShoppingBag, Package, Users, BarChart3, Wallet } from "lucide-react";
 import { getUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
@@ -48,6 +48,14 @@ export default async function Home() {
           </div>
           <h2 className="text-2xl font-semibold">Analytics</h2>
           <p className="text-center text-muted-foreground">View trends and insights on sales data.</p>
+        </Link>
+
+        <Link href="/cashflow" className="group relative flex flex-col items-center justify-center gap-4 rounded-xl border bg-card p-8 text-card-foreground shadow-sm transition-colors hover:bg-muted/50 hover:border-primary/50 aspect-square">
+          <div className="p-4 rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+            <Wallet size={48} />
+          </div>
+          <h2 className="text-2xl font-semibold">Cash Flow</h2>
+          <p className="text-center text-muted-foreground">Manage partner contributions and track finances.</p>
         </Link>
 
       </main>

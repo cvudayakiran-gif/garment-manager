@@ -28,6 +28,9 @@ export default async function AnalyticsPage() {
                         <ArrowLeft size={20} />
                     </Link>
                     <h1 className="text-xl font-bold tracking-tight">Business Analytics</h1>
+                    <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-primary/10 text-primary">
+                        Last 90 Days
+                    </span>
                 </div>
             </header>
 
