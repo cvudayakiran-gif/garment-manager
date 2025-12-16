@@ -20,7 +20,7 @@ export default function AddItemPage() {
                     <input required type="text" name="name" id="name" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" placeholder="e.g. Pure Silk, Cotton, Georgette" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4">
                     <div className="space-y-2">
                         <label htmlFor="category" className="text-sm font-medium">Color / Pattern</label>
                         <input type="text" name="category" id="category" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" placeholder="e.g. Red with Gold Zari" />
@@ -32,7 +32,11 @@ export default function AddItemPage() {
                 </div>
 
                 {/* Pricing & Stock */}
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <label htmlFor="date" className="text-sm font-medium">Date</label>
+                        <input required type="date" name="date" id="date" defaultValue={new Date().toISOString().split('T')[0]} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
+                    </div>
                     <div className="space-y-2">
                         <label htmlFor="price" className="text-sm font-medium">Price (₹)</label>
                         <input required type="number" step="1" name="price" id="price" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" placeholder="0" />
@@ -42,7 +46,7 @@ export default function AddItemPage() {
                         <input type="number" step="1" name="cost" id="cost" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" placeholder="0" />
                     </div>
                     <div className="space-y-2">
-                        <label htmlFor="stock" className="text-sm font-medium">Initial Stock</label>
+                        <label htmlFor="stock" className="text-sm font-medium">Quantity</label>
                         <input required type="number" name="stock" id="stock" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" placeholder="1" />
                     </div>
                 </div>

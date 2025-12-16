@@ -67,6 +67,7 @@ export async function addItem(formData: FormData) {
     const sku = formData.get('sku') as string;
     const category = formData.get('category') as string;
     const source = formData.get('source') as string;
+    const date = formData.get('date') as string;
 
     let image_path = null;
     const imageFile = formData.get('image') as File;
@@ -111,7 +112,8 @@ export async function addItem(formData: FormData) {
             stock,
             category: category || null,
             source: source || null,
-            image_path
+            image_path,
+            created_at: date ? new Date(date).toISOString() : new Date().toISOString()
         });
 
     if (error) {
