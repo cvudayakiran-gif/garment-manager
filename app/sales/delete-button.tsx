@@ -8,7 +8,7 @@ export default function DeleteButton({ saleId }: { saleId: number }) {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const handleDelete = async () => {
-        if (confirm('Are you sure you want to delete this sale?\n\nThis will restore the inventory stock and permanently remove the transaction.')) {
+        if (confirm('Are you sure you want to REVERSE this sale?\n\nThis will restore the inventory stock and mark the transaction as reversed.')) {
             setIsDeleting(true);
             await deleteSale(saleId);
             setIsDeleting(false);

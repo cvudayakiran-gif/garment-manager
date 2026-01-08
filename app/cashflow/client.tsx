@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Partner, Contribution, Expense, BalanceSheet, ProfitLoss } from '@/lib/cashflow-actions';
+import { Partner, Contribution, Expense, BalanceSheet, ProfitLoss, seedPartners } from '@/lib/cashflow-actions';
 
 export default function CashFlowClient({
     partners,
@@ -44,8 +44,8 @@ export default function CashFlowClient({
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`px-4 py-2 font-medium transition-colors border-b-2 ${activeTab === tab.id
-                                    ? 'border-primary text-primary'
-                                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                                ? 'border-primary text-primary'
+                                : 'border-transparent text-muted-foreground hover:text-foreground'
                                 }`}
                         >
                             {tab.label}
@@ -70,17 +70,34 @@ export default function CashFlowClient({
                         <form action="/api/cashflow/add-contribution" method="post" className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label htmlFor="partner_id" className="text-sm font-medium">Partner</label>
-                                <select
-                                    name="partner_id"
-                                    id="partner_id"
-                                    required
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                >
-                                    <option value="">Select partner</option>
-                                    {partners.map((p) => (
-                                        <option key={p.id} value={p.id}>{p.name}</option>
-                                    ))}
-                                </select>
+                                {partners.length > 0 ? (
+                                    <select
+                                        name="partner_id"
+                                        id="partner_id"
+                                        required
+                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                    >
+                                        <option value="">Select partner</option>
+                                        {partners.map((p) => (
+                                            <option key={p.id} value={p.id}>{p.name}</option>
+                                        ))}
+                                    </select>
+                                ) : (
+                                    <div className="space-y-2 border border-red-200 bg-red-50 p-2 rounded">
+                                        <p className="text-red-600 text-xs font-medium">No partners found (Tables missing?)</p>
+                                        <button
+                                            type="button"
+                                            onClick={async () => {
+                                                const res = await seedPartners();
+                                                if (!res.success) alert("Failed: " + res.error);
+                                                else alert("Done! Refresh page if needed.");
+                                            }}
+                                            className="text-xs bg-white border border-red-300 px-2 py-1 rounded shadow-sm hover:bg-gray-50"
+                                        >
+                                            Initialize Partners
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                             <div>
                                 <label htmlFor="amount" className="text-sm font-medium">Amount (₹)</label>

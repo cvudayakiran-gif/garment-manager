@@ -136,20 +136,22 @@ export default async function SalesPage({
                                         <tr key={sale.id} className="border-b transition-colors hover:bg-muted/50">
                                             <td className="p-4 align-middle font-mono text-xs">#{sale.id}</td>
                                             <td className="p-4 align-middle">
-                                                {new Date(sale.created_at).toLocaleDateString()} <span className="text-muted-foreground text-xs">{new Date(sale.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                <div className={sale.status === 'reversed' ? 'line-through opacity-50' : ''}>
+                                                    {new Date(sale.created_at).toLocaleDateString()} <span className="text-muted-foreground text-xs">{new Date(sale.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                </div>
                                             </td>
-                                            <td className="p-4 align-middle text-right font-bold">₹{sale.total}</td>
+                                            <td className={`p-4 align-middle text-right font-bold ${sale.status === 'reversed' ? 'line-through opacity-50' : ''}`}>₹{sale.total}</td>
                                             <td className="p-4 align-middle text-right text-muted-foreground">{sale.discount > 0 ? `-₹${sale.discount}` : '-'}</td>
                                             <td className="p-4 align-middle text-right">
-                                                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${sale.status === 'refunded'
-                                                    ? 'bg-destructive/10 text-destructive'
+                                                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${sale.status === 'reversed'
+                                                    ? 'bg-red-100 text-red-800'
                                                     : 'bg-green-100 text-green-800'
                                                     }`}>
                                                     {sale.status}
                                                 </span>
                                             </td>
                                             <td className="p-4 align-middle text-right">
-                                                {sale.status !== 'refunded' && (
+                                                {sale.status !== 'reversed' && (
                                                     <DeleteButton saleId={sale.id} />
                                                 )}
                                             </td>

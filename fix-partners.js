@@ -11,7 +11,10 @@ envContent.split('\n').forEach(line => {
     const parts = line.split('=');
     if (parts.length >= 2) {
         const key = parts[0].trim();
-        const value = parts.slice(1).join('=').trim();
+        let value = parts.slice(1).join('=').trim();
+        if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+            value = value.slice(1, -1);
+        }
         envVars[key] = value;
     }
 });

@@ -17,11 +17,18 @@ export interface Item {
     created_at: string;
 }
 
-export async function getItems(query?: string): Promise<Item[]> {
+export async function getItems(query?: string, status: string = 'active'): Promise<Item[]> {
     let queryBuilder = supabaseAdmin
         .from('items')
-        .select('*')
-        .order('id', { ascending: false });
+        .select('*');
+
+    if (status === 'returned') {
+        queryBuilder = queryBuilder.eq('status', 'returned');
+    } else {
+        queryBuilder = queryBuilder.neq('status', 'returned').gt('stock', 0);
+    }
+
+    queryBuilder = queryBuilder.order('id', { ascending: false });
 
     if (query) {
         // Try to parse as ID for exact match
@@ -31,6 +38,8 @@ export async function getItems(query?: string): Promise<Item[]> {
                 .from('items')
                 .select('*')
                 .eq('id', idSearch)
+                .neq('status', 'returned')
+                .gt('stock', 0) // Ensure sold items are not returned
                 .single();
             return data ? [data] : [];
         }
@@ -40,6 +49,7 @@ export async function getItems(query?: string): Promise<Item[]> {
             .from('items')
             .select('*')
             .or(`name.ilike.%${query}%,sku.ilike.%${query}%,category.ilike.%${query}%,source.ilike.%${query}%`)
+            .gt('stock', 0)
             .order('id', { ascending: false });
 
         return data || [];
@@ -63,7 +73,7 @@ export async function addItem(formData: FormData) {
     const name = formData.get('name') as string;
     const price = parseFloat(formData.get('price') as string) || 0;
     const cost = parseFloat(formData.get('cost') as string) || 0;
-    const stock = parseInt(formData.get('stock') as string) || 0;
+    const quantity = parseInt(formData.get('stock') as string) || 1;
     const sku = formData.get('sku') as string;
     const category = formData.get('category') as string;
     const source = formData.get('source') as string;
@@ -102,26 +112,37 @@ export async function addItem(formData: FormData) {
         }
     }
 
-    const { error } = await supabaseAdmin
-        .from('items')
-        .insert({
-            name,
-            sku: sku || null,
-            price,
-            cost,
-            stock,
-            category: category || null,
-            source: source || null,
-            image_path,
-            created_at: date ? new Date(date).toISOString() : new Date().toISOString()
-        });
+    const createdIds: number[] = [];
+    const createdDate = date ? new Date(date).toISOString() : new Date().toISOString();
 
-    if (error) {
-        console.error('Failed to add item:', error);
+    for (let i = 0; i < quantity; i++) {
+        // Note: If SKU is unique in DB, providing same SKU multiple times will fail.
+        // We assume constraint is dropped or SKU is unique per item.
+        const { data, error } = await supabaseAdmin
+            .from('items')
+            .insert({
+                name,
+                sku: sku || null,
+                price,
+                cost,
+                stock: 1, // Individual item count is 1
+                category: category || null,
+                source: source || null,
+                image_path,
+                created_at: createdDate
+            })
+            .select('id')
+            .single();
+
+        if (error) {
+            console.error('Failed to add item:', error);
+        } else if (data) {
+            createdIds.push(data.id);
+        }
     }
 
     revalidatePath('/inventory');
-    redirect('/inventory');
+    return { success: true, ids: createdIds };
 }
 
 export async function updateStock(id: number, adjustment: number) {
@@ -144,27 +165,13 @@ export async function updateStock(id: number, adjustment: number) {
 }
 
 export async function deleteItem(id: number) {
-    // Get item to check if it has an image
-    const { data: item } = await supabaseAdmin
-        .from('items')
-        .select('image_path')
-        .eq('id', id)
-        .single();
-
-    // Delete image from storage if it exists
-    if (item?.image_path) {
-        const fileName = item.image_path.split('/').pop();
-        if (fileName) {
-            await supabaseAdmin.storage
-                .from('saree-images')
-                .remove([fileName]);
-        }
-    }
-
-    // Delete item from database
+    // Soft delete: return to vendor
     await supabaseAdmin
         .from('items')
-        .delete()
+        .update({
+            status: 'returned',
+            stock: 0
+        })
         .eq('id', id);
 
     revalidatePath('/inventory');

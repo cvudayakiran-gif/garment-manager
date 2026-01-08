@@ -22,6 +22,7 @@ export default async function CashFlowPage({
     if (!user) redirect('/login');
 
     const partners = await getPartners();
+    console.log('Fetched partners in Page:', partners);
     const contributions = await getContributions();
     const expenses = await getExpenses();
 

@@ -27,19 +27,32 @@ export async function getSales(startDate?: string, endDate?: string): Promise<Sa
     const start = startDate || defaultStartDate;
     const end = endDate || defaultEndDate;
 
+    // Add one day to end date to ensure we cover the full day
+    const endDateObj = new Date(end);
+    endDateObj.setDate(endDateObj.getDate() + 1);
+    const nextDay = endDateObj.toISOString().split('T')[0];
+
     const { data } = await supabaseAdmin
         .from('sales')
         .select('*')
         .gte('created_at', `${start}T00:00:00`)
-        .lte('created_at', `${end}T23:59:59`)
+        .lt('created_at', `${nextDay}T00:00:00`)
         .order('created_at', { ascending: false });
 
     return data || [];
 }
 
 export async function getAnalytics(): Promise<Analytics> {
-    const today = new Date().toISOString().split('T')[0];
-    const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+
+    // Tomorrow for strict less than comparison
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+    const ninetyDaysAgoDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+    const ninetyDaysAgo = ninetyDaysAgoDate.toISOString().split('T')[0];
 
     // Total revenue (last 90 days)
     const { data: revenueData } = await supabaseAdmin
@@ -54,8 +67,9 @@ export async function getAnalytics(): Promise<Analytics> {
         .from('sales')
         .select('total')
         .eq('status', 'completed')
-        .gte('created_at', `${today}T00:00:00`)
-        .lt('created_at', `${today}T23:59:59`);
+        .eq('status', 'completed')
+        .gte('created_at', `${todayStr}T00:00:00`)
+        .lt('created_at', `${tomorrowStr}T00:00:00`);
     const dailyRevenue = dailyData?.reduce((sum: number, sale: any) => sum + Number(sale.total), 0) || 0;
 
     // Total transactions (last 90 days)
@@ -116,16 +130,10 @@ export async function deleteSale(saleId: number) {
             }
         }
 
-        // Delete sale items (if not cascading) - doing it explicitly to be safe
-        await supabaseAdmin
-            .from('sale_items')
-            .delete()
-            .eq('sale_id', saleId);
-
-        // Delete sale
+        // Update sale status to reversed instead of deleting
         await supabaseAdmin
             .from('sales')
-            .delete()
+            .update({ status: 'reversed' })
             .eq('id', saleId);
 
         revalidatePath('/sales');

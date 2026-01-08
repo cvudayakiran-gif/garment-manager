@@ -1,4 +1,5 @@
 import { getItems, deleteItem, Item } from "@/lib/actions";
+import ReturnItemButton from "./return-button";
 import Link from "next/link";
 import { Plus, Search, Trash2, ArrowLeft, Image as ImageIcon, Calendar } from "lucide-react";
 import { getUser } from "@/lib/auth";
@@ -8,7 +9,7 @@ import Image from "next/image";
 export default async function InventoryPage({
     searchParams,
 }: {
-    searchParams: Promise<{ q?: string, sort?: string }>;
+    searchParams: Promise<{ q?: string, sort?: string, status?: string }>;
 }) {
     const user = await getUser();
     if (!user) redirect('/login');
@@ -16,8 +17,9 @@ export default async function InventoryPage({
     const params = await searchParams;
     const query = params.q || "";
     const sort = params.sort || "newest";
+    const status = params.status || "active";
 
-    let items = await getItems(query);
+    let items = await getItems(query, status);
 
     // Sorting Logic (in memory for now as getItems doesn't support generic sort arg yet)
     if (sort === "oldest") {
@@ -70,6 +72,21 @@ export default async function InventoryPage({
                     </div>
                 </div>
 
+                <div className="flex gap-2 mb-4">
+                    <Link
+                        href="/inventory"
+                        className={`text-sm font-medium px-3 py-1.5 rounded-full transition-colors ${!params.status ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
+                    >
+                        Available Stock
+                    </Link>
+                    <Link
+                        href="/inventory?status=returned"
+                        className={`text-sm font-medium px-3 py-1.5 rounded-full transition-colors ${params.status === 'returned' ? 'bg-orange-100 text-orange-800' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
+                    >
+                        Returned Items
+                    </Link>
+                </div>
+
                 <div className="rounded-md border bg-card">
                     <div className="relative w-full overflow-auto">
                         <table className="w-full caption-bottom text-sm">
@@ -114,8 +131,8 @@ export default async function InventoryPage({
                                                 <td className="p-4 align-middle">{item.category}</td>
                                                 <td className="p-4 align-middle text-right">
                                                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs whitespace-nowrap ${daysOld < 7 ? 'bg-primary/10 text-primary font-bold' :
-                                                            daysOld > 60 ? 'bg-orange-100 text-orange-700' :
-                                                                'bg-muted text-muted-foreground'
+                                                        daysOld > 60 ? 'bg-orange-100 text-orange-700' :
+                                                            'bg-muted text-muted-foreground'
                                                         }`}>
                                                         <Calendar size={10} /> {daysOld}d
                                                     </span>
@@ -123,11 +140,7 @@ export default async function InventoryPage({
                                                 <td className="p-4 align-middle text-right">₹{item.price}</td>
                                                 <td className={`p-4 align-middle text-right font-bold ${item.stock < 5 ? 'text-destructive' : ''}`}>{item.stock}</td>
                                                 <td className="p-4 align-middle text-right">
-                                                    <form action={deleteItem.bind(null, item.id)}>
-                                                        <button type="submit" className="p-2 hover:bg-destructive/10 hover:text-destructive rounded-md transition-colors">
-                                                            <Trash2 size={16} />
-                                                        </button>
-                                                    </form>
+                                                    <ReturnItemButton itemId={item.id} />
                                                 </td>
                                             </tr>
                                         );

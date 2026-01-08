@@ -53,7 +53,43 @@ export async function getPartners(): Promise<Partner[]> {
         .select('*')
         .order('name');
 
+    if (!data || data.length === 0) {
+        // Seed default partners if none exist
+        const { error } = await supabaseAdmin
+            .from('partners')
+            .insert([{ name: 'Putty' }, { name: 'Sony' }]);
+
+        if (!error) {
+            const { data: newData } = await supabaseAdmin
+                .from('partners')
+                .select('*')
+                .order('name');
+            return newData || [];
+        }
+    }
+
     return data || [];
+}
+
+export async function seedPartners() {
+    try {
+        const { error } = await supabaseAdmin
+            .from('partners')
+            .insert([{ name: 'Putty' }, { name: 'Sony' }])
+            .select();
+
+        if (error) {
+            // Ignore unique constraint violation if they exist now
+            if (!error.message.includes('unique')) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        revalidatePath('/cashflow');
+        return { success: true };
+    } catch (e: any) {
+        return { success: false, error: e.message };
+    }
 }
 
 // Contributions
