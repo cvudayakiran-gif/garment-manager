@@ -6,6 +6,8 @@ import { ArrowLeft, RotateCcw, TrendingUp, ShoppingBag, Banknote, Calendar } fro
 import { getUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
+export const dynamic = 'force-dynamic';
+
 export default async function SalesPage({
     searchParams,
 }: {
@@ -117,6 +119,10 @@ export default async function SalesPage({
                         </span>
                         <span className="text-2xl font-bold mt-2">{stats.totalItemsSold}</span>
                     </div>
+                </div>
+
+                <div className="bg-muted/30 p-2 text-[10px] font-mono rounded text-muted-foreground">
+                    DEBUG: Received Params - Start: {searchParams?.startDate || 'undefined'}, End: {searchParams?.endDate || 'undefined'}
                 </div>
 
                 <div className="rounded-md border bg-card">

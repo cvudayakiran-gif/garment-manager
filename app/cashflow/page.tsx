@@ -13,6 +13,8 @@ import { getUser } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import CashFlowClient from './client';
 
+export const dynamic = 'force-dynamic';
+
 export default async function CashFlowPage({
     searchParams,
 }: {
