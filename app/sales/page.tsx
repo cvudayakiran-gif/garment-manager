@@ -1,4 +1,5 @@
 import { getSales, getAnalytics } from "@/lib/sales-actions";
+import { formatDate } from "@/lib/utils";
 import DeleteButton from "./delete-button";
 import Link from "next/link";
 import { ArrowLeft, RotateCcw, TrendingUp, ShoppingBag, Banknote, Calendar } from "lucide-react";
@@ -21,9 +22,19 @@ export default async function SalesPage({
 
     // Calculate date range display
     const defaultEndDate = new Date().toISOString().split('T')[0];
+    // Default to roughly 3 months ago (90 days). 
+    // User reported issue with 10-Nov. If today is 09-Jan, 90 days ago IS roughly 11-Oct.
+    // If they saw 10-Nov, they might have been seeing 60 days? 
+    // Let's ensure searchParams override defaults correctly.
     const defaultStartDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    const displayStartDate = startDate || defaultStartDate;
-    const displayEndDate = endDate || defaultEndDate;
+
+    // Explicitly check for searchParams.startDate existence. 
+    // Next.js searchParams can be undefined.
+    const displayStartDate = searchParams?.startDate || defaultStartDate;
+    const displayEndDate = searchParams?.endDate || defaultEndDate;
+
+    // Debug log to console (server-side)
+    console.log(`[SalesPage] Params: start=${searchParams?.startDate}, end=${searchParams?.endDate}. Using: ${displayStartDate} to ${displayEndDate}`);
 
     return (
         <div className="flex flex-col min-h-screen bg-background">
@@ -78,8 +89,8 @@ export default async function SalesPage({
                         </Link>
                     </form>
                     <p className="text-xs text-muted-foreground mt-2">
-                        Showing: {new Date(displayStartDate).toLocaleDateString()} - {new Date(displayEndDate).toLocaleDateString()}
-                        {!startDate && !endDate && " (Last 90 Days)"}
+                        Showing: {formatDate(displayStartDate)} - {formatDate(displayEndDate)}
+                        {!searchParams?.startDate && !searchParams?.endDate && " (Last 90 Days)"}
                     </p>
                 </div>
 
@@ -137,7 +148,7 @@ export default async function SalesPage({
                                             <td className="p-4 align-middle font-mono text-xs">#{sale.id}</td>
                                             <td className="p-4 align-middle">
                                                 <div className={sale.status === 'reversed' ? 'line-through opacity-50' : ''}>
-                                                    {new Date(sale.created_at).toLocaleDateString()} <span className="text-muted-foreground text-xs">{new Date(sale.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                    {formatDate(sale.created_at)} <span className="text-muted-foreground text-xs">{new Date(sale.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                                 </div>
                                             </td>
                                             <td className={`p-4 align-middle text-right font-bold ${sale.status === 'reversed' ? 'line-through opacity-50' : ''}`}>₹{sale.total}</td>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Partner, Contribution, Expense, BalanceSheet, ProfitLoss, seedPartners } from '@/lib/cashflow-actions';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { formatDate } from "@/lib/utils";
 
 export default function CashFlowClient({
     partners,
@@ -175,7 +176,7 @@ export default function CashFlowClient({
                                     {contributions.map((c) => (
                                         <tr key={c.id} className="border-b hover:bg-muted/50">
                                             <td className="p-4 font-medium">{c.partner_name}</td>
-                                            <td className="p-4">{new Date(c.contribution_date).toLocaleDateString()}</td>
+                                            <td className="p-4">{formatDate(c.contribution_date)}</td>
                                             <td className="p-4 text-right font-bold text-green-600">₹{Number(c.amount).toLocaleString()}</td>
                                             <td className="p-4 text-muted-foreground">{c.notes || '-'}</td>
                                         </tr>
@@ -265,7 +266,7 @@ export default function CashFlowClient({
                                 <tbody>
                                     {expenses.map((e) => (
                                         <tr key={e.id} className="border-b hover:bg-muted/50">
-                                            <td className="p-4">{new Date(e.expense_date).toLocaleDateString()}</td>
+                                            <td className="p-4">{formatDate(e.expense_date)}</td>
                                             <td className="p-4 font-medium">{e.description}</td>
                                             <td className="p-4 text-muted-foreground">{e.category || '-'}</td>
                                             <td className="p-4 text-right font-bold text-red-600">₹{Number(e.amount).toLocaleString()}</td>
@@ -308,7 +309,7 @@ export default function CashFlowClient({
                     <div className="rounded-xl border bg-card overflow-hidden">
                         <div className="p-6 border-b bg-muted/30">
                             <h3 className="text-xl font-bold">Balance Sheet</h3>
-                            <p className="text-sm text-muted-foreground">As of {new Date(balanceDate).toLocaleDateString()}</p>
+                            <p className="text-sm text-muted-foreground">As of {formatDate(balanceDate)}</p>
                         </div>
                         <div className="p-6 space-y-6">
                             <div>
@@ -397,7 +398,7 @@ export default function CashFlowClient({
                         <div className="p-6 border-b bg-muted/30">
                             <h3 className="text-xl font-bold">Profit & Loss Statement</h3>
                             <p className="text-sm text-muted-foreground">
-                                {new Date(plStartDate).toLocaleDateString()} - {new Date(plEndDate).toLocaleDateString()}
+                                {formatDate(plStartDate)} - {formatDate(plEndDate)}
                             </p>
                         </div>
                         <div className="p-6 space-y-4">

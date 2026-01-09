@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { formatDate } from "@/lib/utils";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,7 +30,7 @@ export default function RootLayout({
       >
         {children}
         <footer className="fixed bottom-0 right-0 p-1 bg-background/80 text-[10px] text-muted-foreground pointer-events-none z-50">
-          v0.1.2 (Updated: {new Date().toLocaleString()})
+          v0.1.3 (Updated: {formatDate(new Date())} {new Date().toLocaleTimeString()})
         </footer>
       </body>
     </html>
