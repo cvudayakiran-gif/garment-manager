@@ -29,7 +29,7 @@ export default function RootLayout({
       >
         {children}
         <footer className="fixed bottom-0 right-0 p-1 bg-background/80 text-[10px] text-muted-foreground pointer-events-none z-50">
-          v0.1.1 (Updated: {new Date().toLocaleString()})
+          v0.1.2 (Updated: {new Date().toLocaleString()})
         </footer>
       </body>
     </html>

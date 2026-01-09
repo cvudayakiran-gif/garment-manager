@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Partner, Contribution, Expense, BalanceSheet, ProfitLoss, seedPartners } from '@/lib/cashflow-actions';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 export default function CashFlowClient({
     partners,
@@ -16,14 +17,27 @@ export default function CashFlowClient({
     initialBalanceSheet: BalanceSheet;
     initialProfitLoss: ProfitLoss;
 }) {
-    const [activeTab, setActiveTab] = useState<'contributions' | 'expenses' | 'balance' | 'profitloss'>('contributions');
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+    const currentTab = searchParams.get('tab') as 'contributions' | 'expenses' | 'balance' | 'profitloss' | null;
+
+    const [activeTab, setActiveTab] = useState<'contributions' | 'expenses' | 'balance' | 'profitloss'>(currentTab || 'contributions');
+
+    // Update URL when tab changes
+    const handleTabChange = (tab: typeof activeTab) => {
+        setActiveTab(tab);
+        const params = new URLSearchParams(searchParams);
+        params.set('tab', tab);
+        router.replace(`${pathname}?${params.toString()}`);
+    };
 
     // Balance sheet date
-    const [balanceDate, setBalanceDate] = useState(new Date().toISOString().split('T')[0]);
+    const [balanceDate, setBalanceDate] = useState(searchParams.get('balanceDate') || new Date().toISOString().split('T')[0]);
 
     // P&L dates
-    const [plStartDate, setPlStartDate] = useState(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
-    const [plEndDate, setPlEndDate] = useState(new Date().toISOString().split('T')[0]);
+    const [plStartDate, setPlStartDate] = useState(searchParams.get('plStartDate') || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+    const [plEndDate, setPlEndDate] = useState(searchParams.get('plEndDate') || new Date().toISOString().split('T')[0]);
 
     const totalContributions = contributions.reduce((sum, c) => sum + Number(c.amount), 0);
 
@@ -42,7 +56,7 @@ export default function CashFlowClient({
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
+                            onClick={() => handleTabChange(tab.id)}
                             className={`px-4 py-2 font-medium transition-colors border-b-2 ${activeTab === tab.id
                                 ? 'border-primary text-primary'
                                 : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -280,6 +294,7 @@ export default function CashFlowClient({
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                 />
                             </div>
+                            <input type="hidden" name="tab" value="balance" />
                             <button
                                 type="submit"
                                 className="h-10 px-4 inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90"
@@ -367,6 +382,7 @@ export default function CashFlowClient({
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                 />
                             </div>
+                            <input type="hidden" name="tab" value="profitloss" />
                             <button
                                 type="submit"
                                 className="h-10 px-4 inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90"
